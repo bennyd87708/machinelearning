@@ -47,7 +47,6 @@ class PerceptronModel(object):
         while not converged:
             errored = False
             for x, y in dataset.iterate_once(1):
-                self.get_prediction(x)
                 if self.get_prediction(x) != nn.as_scalar(y):
                     errored = True
                     self.get_weights().update(x, nn.as_scalar(y))
