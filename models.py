@@ -143,13 +143,11 @@ class DigitClassificationModel(object):
     def __init__(self):
         # Initialize your model parameters here
         self.batch_size = 10
-        self.learning_rate = -0.03
-        self.l1w = nn.Parameter(784, 200)
-        self.l2w = nn.Parameter(200, 100)
-        self.l3w = nn.Parameter(100, 10)
-        self.l1b = nn.Parameter(1, 200)
-        self.l2b = nn.Parameter(1, 100)
-        self.l3b = nn.Parameter(1, 10)
+        self.learning_rate = -0.05
+        self.l1w = nn.Parameter(784, 100)
+        self.l2w = nn.Parameter(100, 10)
+        self.l1b = nn.Parameter(1, 100)
+        self.l2b = nn.Parameter(1, 10)
 
     def run(self, x):
         """
@@ -170,10 +168,7 @@ class DigitClassificationModel(object):
         l1f = nn.ReLU(l1b)
         l2l = nn.Linear(l1f, self.l2w)
         l2b = nn.AddBias(l2l, self.l2b)
-        l2f = nn.ReLU(l2b)
-        l3l = nn.Linear(l2f, self.l3w)
-        l3b = nn.AddBias(l3l, self.l3b)
-        return l3b
+        return l2b
 
     def get_loss(self, x, y):
         """
@@ -194,7 +189,7 @@ class DigitClassificationModel(object):
         """
         Trains the model.
         """
-        vals = [self.l1w, self.l2w, self.l3w, self.l1b, self.l2b, self.l3b]
+        vals = [self.l1w, self.l2w, self.l1b, self.l2b]
         while dataset.get_validation_accuracy() < 0.975:
             for x, y in dataset.iterate_once(self.batch_size):
                 loss = self.get_loss(x, y)
