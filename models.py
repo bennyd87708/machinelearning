@@ -62,6 +62,14 @@ class RegressionModel(object):
     def __init__(self):
         # Initialize your model parameters here
         "*** YOUR CODE HERE ***"
+        self.batch_size = 20
+        self.hiddenLayerSize = 10
+        self.firstHiddenLayer = nn.Parameter(1, self.hiddenLayerSize)
+        self.firstHiddenLayerBias = nn.Parameter(1, self.hiddenLayerSize)
+
+        self.learning_rate = -0.01
+        self.outputBias = nn.Parameter(1, 1)
+        self.outputLayer = nn.Parameter(self.hiddenLayerSize, 1)
 
     def run(self, x):
         """
@@ -73,6 +81,13 @@ class RegressionModel(object):
             A node with shape (batch_size x 1) containing predicted y-values
         """
         "*** YOUR CODE HERE ***"
+        hiddenLinear = nn.Linear(x, self.firstHiddenLayer)
+        hiddenOutput = nn.ReLU(nn.AddBias(hiddenLinear, self.firstHiddenLayerBias))
+
+        outputLinear = nn.Linear(hiddenOutput, self.outputLayer)
+        prediction = nn.AddBias(outputLinear, self.outputBias)
+
+        return prediction
 
     def get_loss(self, x, y):
         """
@@ -85,12 +100,31 @@ class RegressionModel(object):
         Returns: a loss node
         """
         "*** YOUR CODE HERE ***"
+        return nn.SquareLoss(self.run(x), y)
 
     def train(self, dataset):
         """
         Trains the model.
         """
         "*** YOUR CODE HERE ***"
+        accuracy = float('inf')
+        while accuracy > 0.02:
+            average = 0
+            counter = 0
+            for x, y in dataset.iterate_once(self.batch_size):
+                loss = self.get_loss(x, y)
+                average += nn.as_scalar(loss)
+                counter += 1
+                gradient_outputLayer, gradient_outputBias, \
+                gradient_firstHiddenLayer, gradient_firstHiddenLayerBias,= \
+                    nn.gradients(loss, [self.outputLayer, self.outputBias,
+                                        self.firstHiddenLayer, self.firstHiddenLayerBias])
+                self.outputLayer.update(gradient_outputLayer, self.learning_rate)
+                self.outputBias.update(gradient_outputBias, self.learning_rate)
+                self.firstHiddenLayer.update(gradient_firstHiddenLayer, self.learning_rate)
+                self.firstHiddenLayerBias.update(gradient_firstHiddenLayerBias, self.learning_rate)
+            average /= counter
+            accuracy = average
 
 class DigitClassificationModel(object):
     """
